@@ -278,6 +278,7 @@ Deno.serve(async (req) => {
     let leadName = "Valued Caller";
     let leadContext = "This is a new lead. Ask for their name.";
     let isNewLead = true;
+    let leadId: string | null = null;
 
     if (callerNumber) {
       const { data: existingLead } = await supabaseAdmin
@@ -289,10 +290,11 @@ Deno.serve(async (req) => {
 
       if (existingLead) {
         isNewLead = false;
+        leadId = existingLead.id;
         leadName = existingLead.name || "Valued Caller";
         leadContext = `Returning lead. Interest: ${existingLead.interest_level}. Notes: ${existingLead.summary}`;
       } else {
-        await supabaseAdmin
+        const { data: insertedLead } = await supabaseAdmin
           .from("leads")
           .insert({
             agent_id: agent.id,
@@ -300,7 +302,10 @@ Deno.serve(async (req) => {
             interest_level: "warm",
             summary: "Auto-created via Vapi inbound call",
             name: "Unknown Caller",
-          });
+          })
+          .select("id")
+          .single();
+        leadId = insertedLead?.id ?? null;
       }
 
       // Send Discord notification (non-blocking) - bypasses 10DLC
@@ -315,6 +320,25 @@ Deno.serve(async (req) => {
     // Detect solar liability from lead context/notes
     const solarDetection = detectSolarLiability(leadContext);
     const solarScript = getSolarQualificationScript(solarDetection);
+
+    // Persist a lightweight risk assessment if solar indicators are found
+    if (solarDetection.detected) {
+      const inferredSolarStatus = solarDetection.requiresQualification ? 'leased' : 'owned';
+      const { data: riskData, error: riskError } = await supabaseAdmin
+        .from("risk_assessments")
+        .insert({
+          agent_id: agent.id,
+          lead_id: leadId,
+          solar_status: inferredSolarStatus,
+          risk_level: solarDetection.riskLevel,
+          assessment_json: { keywords: solarDetection.keywords, source: "vapi-handler" }
+        })
+        .select("id")
+        .single();
+      if (riskError) {
+        console.error("risk_assessments insert error:", riskError);
+      }
+    }
 
     // ============================================
     // ARIZONA PERSONA: Spanglish + Local Knowledge

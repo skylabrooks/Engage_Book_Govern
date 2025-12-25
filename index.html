@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EbookGov | AI Real Estate Agent for Arizona</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Tailwind Config for Brand Colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth Scrolling */
+        html { scroll-behavior: smooth; }
+        /* Animation Utilities */
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const EbookGovLanding = () => {
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [roiCalculator, setRoiCalculator] = useState({
+                leadsPerMonth: 50,
+                avgCommission: 15000,
+                conversionRate: 2, // percent
+            });
+
+            // ROI Calculation Logic
+            const currentRevenue = (roiCalculator.leadsPerMonth * (roiCalculator.conversionRate / 100)) * roiCalculator.avgCommission;
+            const projectedRevenue = currentRevenue * 1.335;
+            const annualGain = (projectedRevenue - currentRevenue) * 12;
+
+            // Scroll handler
+            const scrollToSection = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                    setIsMenuOpen(false);
+                }
+            };
+
+            return (
+                <div className="font-sans text-gray-900 bg-white">
+                    {/* Navigation */}
+                    <nav className="fixed w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex justify-between items-center h-20">
+                                {/* Logo Area */}
+                                <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => window.scrollTo(0,0)}>
+                                    <img 
+                                        src="ebookgov-logo.jpg" 
+                                        alt="EbookGov Logo" 
+                                        className="h-12 w-auto object-contain mr-3"
+                                        onError={(e) => {e.target.style.display='none'; document.getElementById('text-logo').style.display='block'}}
+                                    />
+                                    <span id="text-logo" className="hidden text-2xl font-bold text-slate-900 tracking-tight">
+                                        Ebook<span className="text-orange-600">Gov</span>
+                                    </span>
+                                </div>
+
+                                {/* Desktop Menu */}
+                                <div className="hidden md:flex space-x-8 items-center">
+                                    <button onClick={() => scrollToSection('problem')} className="text-gray-600 hover:text-orange-600 font-medium transition">The Problem</button>
+                                    <button onClick={() => scrollToSection('solution')} className="text-gray-600 hover:text-orange-600 font-medium transition">Solution</button>
+                                    <button onClick={() => scrollToSection('compliance')} className="text-gray-600 hover:text-orange-600 font-medium transition">Compliance</button>
+                                    <button onClick={() => scrollToSection('roi')} className="text-gray-600 hover:text-orange-600 font-medium transition">ROI</button>
+                                    <button 
+                                        onClick={() => scrollToSection('demo')}
+                                        className="bg-indigo-900 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-indigo-800 transition shadow-lg flex items-center gap-2"
+                                    >
+                                        <i className="fas fa-phone"></i>
+                                        Test the Agent
+                                    </button>
+                                </div>
+
+                                {/* Mobile Menu Button */}
+                                <div className="md:hidden flex items-center">
+                                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-600 text-2xl">
+                                        {isMenuOpen ? <i className="fas fa-times"></i> : <i className="fas fa-bars"></i>}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Mobile Menu */}
+                        {isMenuOpen && (
+                            <div className="md:hidden bg-white border-t border-gray-100 p-4 shadow-xl">
+                                <div className="flex flex-col space-y-4">
+                                    <button onClick={() => scrollToSection('problem')} className="text-left text-gray-700 font-medium">The Problem</button>
+                                    <button onClick={() => scrollToSection('solution')} className="text-left text-gray-700 font-medium">Solution</button>
+                                    <button onClick={() => scrollToSection('compliance')} className="text-left text-gray-700 font-medium">Compliance</button>
+                                    <button 
+                                        onClick={() => scrollToSection('demo')}
+                                        className="bg-orange-600 text-white px-4 py-3 rounded-lg font-semibold text-center"
+                                    >
+                                        Test Live Demo
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </nav>
+
+                    {/* Hero Section */}
+                    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+                        <div className="absolute inset-0 z-0">
+                            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-indigo-900/80 z-10"></div>
+                            <img 
+                                src="https://images.unsplash.com/photo-1518235506717-e1ed3306a89b?auto=format&fit=crop&q=80" 
+                                alt="Arizona Desert Home" 
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+
+                        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center lg:text-left">
+                            <div className="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
+                                <div className="mb-12 lg:mb-0">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-200 font-semibold text-sm mb-6 backdrop-blur-sm">
+                                        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                                        The 24/7 AI Concierge
+                                    </div>
+                                    <h1 className="text-4xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
+                                        78% of Business Goes to the Agent Who <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-200">Responds First.</span>
+                                    </h1>
+                                    <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                                        In Arizona's hyper-competitive market, a 5-minute delay costs you the deal. 
+                                        EbookGov engages leads instantly, books showings automatically, and strictly governs compliance.
+                                    </p>
+                                    <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                                        <button onClick={() => scrollToSection('demo')} className="bg-orange-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-orange-500 transition shadow-lg hover:shadow-orange-500/25 flex items-center justify-center gap-2">
+                                            <i className="fas fa-phone"></i>
+                                            Demo the AI Agent
+                                        </button>
+                                        <button onClick={() => scrollToSection('roi')} className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition flex items-center justify-center gap-2">
+                                            <i className="fas fa-dollar-sign"></i>
+                                            Calculate ROI
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Visual Cue */}
+                                <div className="relative mx-auto lg:mx-0 max-w-sm">
+                                    <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-indigo-500 rounded-[2rem] blur opacity-30 animate-pulse"></div>
+                                    <div className="relative bg-slate-900 border-4 border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
+                                        <div className="bg-slate-800 p-4 flex items-center justify-between border-b border-slate-700">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">EG</div>
+                                                <div>
+                                                    <div className="text-white font-semibold text-sm">EbookGov Assistant</div>
+                                                    <div className="text-green-400 text-xs flex items-center gap-1">
+                                                        <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Online Now
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 space-y-4 h-[350px] overflow-y-auto bg-slate-900">
+                                            <div className="flex gap-3">
+                                                <div className="bg-slate-800 text-gray-200 p-3 rounded-2xl rounded-tl-none text-sm max-w-[85%]">
+                                                    Hello! This is the virtual assistant for EbookGov Realty. I see you're interested in the property on Camelback Rd.
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-3 flex-row-reverse">
+                                                <div className="bg-indigo-600 text-white p-3 rounded-2xl rounded-tr-none text-sm max-w-[85%]">
+                                                    Yes, how much is the HOA fee?
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-3">
+                                                <div className="bg-slate-800 text-gray-200 p-3 rounded-2xl rounded-tl-none text-sm max-w-[85%]">
+                                                    The HOA fee is $250 monthly and includes community pool access. Would you like to schedule a viewing?
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-3 justify-center my-4">
+                                                <div className="bg-green-900/30 text-green-400 px-3 py-1 rounded-full text-xs font-mono border border-green-900/50">
+                                                    NEW SHOWING BOOKED
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* The Problem */}
+                    <section id="problem" className="py-20 bg-gray-50">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="text-center mb-16">
+                                <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">You Can’t Be Everywhere At Once.</h2>
+                                <p className="mt-4 text-xl text-gray-600">But your leads can't wait. The "Availability Crisis" is killing your conversion.</p>
+                            </div>
+
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                                    <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-600 mb-6 text-xl">
+                                        <i className="fas fa-clock"></i>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-3">The 5-Minute Drop-off</h3>
+                                    <p className="text-gray-600">Your odds of contacting a lead drop by <strong className="text-red-600">100x</strong> if you wait just 30 minutes to reply.</p>
+                                </div>
+                                
+                                <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-6 text-xl">
+                                        <i className="fas fa-calendar-alt"></i>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-3">The Nurture Gap</h3>
+                                    <p className="text-gray-600">With inventory sitting for an average of <strong className="text-blue-600">62 days</strong>, leads go cold faster than you can follow up manually.</p>
+                                </div>
+
+                                <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                                    <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-6 text-xl">
+                                        <i className="fas fa-globe-americas"></i>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-3">Time-Zone Disconnect</h3>
+                                    <p className="text-gray-600">When your Canadian "snowbird" buyer browses at 5:00 AM Phoenix time, are you awake to answer?</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* The Solution */}
+                    <section id="solution" className="py-20 bg-white">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="text-center mb-16">
+                                <span className="text-orange-600 font-bold tracking-wider uppercase text-sm">The Solution</span>
+                                <h2 className="text-4xl font-extrabold text-gray-900 mt-2">Engage. Book. Govern.</h2>
+                            </div>
+
+                            <div className="grid lg:grid-cols-3 gap-12">
+                                {/* Engage */}
+                                <div className="group">
+                                    <div className="relative h-64 mb-6 overflow-hidden rounded-2xl">
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+                                        <img src="https://images.unsplash.com/photo-1599658880436-c617927b8638?auto=format&fit=crop&q=80" alt="Engagement" className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
+                                        <div className="absolute bottom-4 left-4 z-20 text-white font-bold text-2xl">1. ENGAGE</div>
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-3">The Speed Engine</h3>
+                                    <ul className="space-y-2 text-gray-600">
+                                        <li className="flex gap-2 items-center"><i className="fas fa-check-circle text-green-500"></i> Instant response to Zillow/Sign calls.</li>
+                                        <li className="flex gap-2 items-center"><i className="fas fa-check-circle text-green-500"></i> 24/7 "Snowbird" support.</li>
+                                        <li className="flex gap-2 items-center"><i className="fas fa-check-circle text-green-500"></i> Revive old leads ({'>'}120 days).</li>
+                                    </ul>
+                                </div>
+
+                                {/* Book */}
+                                <div className="group">
+                                    <div className="relative h-64 mb-6 overflow-hidden rounded-2xl">
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+                                        <img src="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80" alt="Booking" className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
+                                        <div className="absolute bottom-4 left-4 z-20 text-white font-bold text-2xl">2. BOOK</div>
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-3">The Logistics Engine</h3>
+                                    <ul className="space-y-2 text-gray-600">
+                                        <li className="flex gap-2 items-center"><i className="fas fa-check-circle text-green-500"></i> Direct Calendar Integration.</li>
+                                        <li className="flex gap-2 items-center"><i className="fas fa-check-circle text-green-500"></i> Pre-screens for lenders.</li>
+                                        <li className="flex gap-2 items-center"><i className="fas fa-check-circle text-green-500"></i> 33.5% increase in bookings.</li>
+                                    </ul>
+                                </div>
+
+                                {/* Govern */}
+                                <div className="group">
+                                    <div className="relative h-64 mb-6 overflow-hidden rounded-2xl">
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+                                        <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80" alt="Compliance" className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
+                                        <div className="absolute bottom-4 left-4 z-20 text-white font-bold text-2xl">3. GOVERN</div>
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-3">The Compliance Engine</h3>
+                                    <ul className="space-y-2 text-gray-600">
+                                        <li className="flex gap-2 items-center"><i className="fas fa-check-circle text-green-500"></i> Built on ADRE Policy 2005.04.</li>
+                                        <li className="flex gap-2 items-center"><i className="fas fa-check-circle text-green-500"></i> "Safe Mode" blocks negotiation.</li>
+                                        <li className="flex gap-2 items-center"><i className="fas fa-check-circle text-green-500"></i> Identity verification.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Compliance */}
+                    <section id="compliance" className="py-20 bg-slate-900 text-white">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="lg:flex lg:items-start lg:gap-16">
+                                <div className="lg:w-1/2 mb-12 lg:mb-0">
+                                    <h2 className="text-3xl font-bold mb-6">Why Generic Chatbots are Dangerous for Arizona Agents</h2>
+                                    <p className="text-gray-400 mb-8">
+                                        Most AI tools are "black boxes" that can accidentally practice real estate without a license, putting your career at risk.
+                                    </p>
+                                    
+                                    <div className="space-y-6">
+                                        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                                            <h4 className="flex items-center gap-2 font-bold text-lg mb-2">
+                                                <i className="fas fa-shield-alt text-orange-500"></i>
+                                                ADRE Policy 2005.04 Compliant
+                                            </h4>
+                                            <p className="text-sm text-gray-400">
+                                                Our AI strictly adheres to the "Unlicensed Assistant" guidelines. It knows the exact boundary between providing factual data and subjective negotiation.
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                                            <h4 className="flex items-center gap-2 font-bold text-lg mb-2">
+                                                <i className="fas fa-user-check text-green-500"></i>
+                                                Identity Verification
+                                            </h4>
+                                            <p className="text-sm text-gray-400">
+                                                Protect yourself from fraud and unsafe showings. We help verify lead identity before you ever unlock the door.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="lg:w-1/2 bg-white text-slate-900 rounded-2xl overflow-hidden shadow-2xl">
+                                    <div className="bg-orange-600 p-4 text-white font-bold text-center">
+                                        Compliance Showdown
+                                    </div>
+                                    <div className="p-6">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-gray-100">
+                                                    <th className="text-left py-4 text-gray-500 font-medium">Feature</th>
+                                                    <th className="text-center py-4 text-red-500 font-bold">Generic AI</th>
+                                                    <th className="text-center py-4 text-green-600 font-bold bg-green-50 rounded-t-lg">EbookGov</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                <tr>
+                                                    <td className="py-4 text-sm font-semibold">Negotiates Price</td>
+                                                    <td className="py-4 text-center text-red-500"><i className="fas fa-times-circle mx-auto"></i> Risks License</td>
+                                                    <td className="py-4 text-center bg-green-50"><i className="fas fa-check-circle mx-auto text-green-600"></i> Blocks It</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-4 text-sm font-semibold">Subjective Opinions</td>
+                                                    <td className="py-4 text-center text-red-500">Hallucinates</td>
+                                                    <td className="py-4 text-center bg-green-50">Defers to Agent</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-4 text-sm font-semibold">Scheduling</td>
+                                                    <td className="py-4 text-center text-gray-500">Clunky Links</td>
+                                                    <td className="py-4 text-center bg-green-50">Direct Integration</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* ROI Calculator */}
+                    <section id="roi" className="py-20 bg-gray-50">
+                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="text-center mb-12">
+                                <h2 className="text-3xl font-bold text-gray-900">Calculate Your Potential ROI</h2>
+                                <p className="text-gray-600 mt-2">See what "Speed to Lead" could mean for your bottom line.</p>
+                            </div>
+
+                            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                                <div className="p-8 md:p-12">
+                                    <div className="grid md:grid-cols-2 gap-12">
+                                        <div className="space-y-6">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">New Leads Per Month</label>
+                                                <input 
+                                                    type="range" 
+                                                    min="10" 
+                                                    max="200" 
+                                                    value={roiCalculator.leadsPerMonth} 
+                                                    onChange={(e) => setRoiCalculator({...roiCalculator, leadsPerMonth: parseInt(e.target.value)})}
+                                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
+                                                />
+                                                <div className="text-right text-orange-600 font-bold mt-1">{roiCalculator.leadsPerMonth} Leads</div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Avg. Commission per Deal ($)</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={roiCalculator.avgCommission} 
+                                                    onChange={(e) => setRoiCalculator({...roiCalculator, avgCommission: parseInt(e.target.value)})}
+                                                    className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Current Conversion Rate (%)</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={roiCalculator.conversionRate} 
+                                                    onChange={(e) => setRoiCalculator({...roiCalculator, conversionRate: parseFloat(e.target.value)})}
+                                                    className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col justify-center bg-indigo-50 p-6 rounded-xl border border-indigo-100">
+                                            <div className="mb-6">
+                                                <div className="text-sm text-gray-500 mb-1">Current Monthly Revenue</div>
+                                                <div className="text-2xl font-bold text-gray-400">${currentRevenue.toLocaleString()}</div>
+                                            </div>
+                                            <div className="mb-6">
+                                                <div className="text-sm text-indigo-600 font-semibold mb-1">Projected w/ EbookGov</div>
+                                                <div className="text-4xl font-extrabold text-indigo-900">${projectedRevenue.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                                                <div className="text-xs text-green-600 font-medium mt-1">+33.5% Appointment Booking Rate</div>
+                                            </div>
+                                            <div className="pt-6 border-t border-indigo-200">
+                                                <div className="text-sm text-gray-600">Potential Annual Gain</div>
+                                                <div className="text-3xl font-bold text-green-600">+${annualGain.toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Demo */}
+                    <section id="demo" className="py-20 bg-white">
+                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                            <div className="inline-block p-4 rounded-full bg-green-100 text-green-700 mb-6 animate-bounce">
+                                <i className="fas fa-phone text-3xl"></i>
+                            </div>
+                            <h2 className="text-4xl font-extrabold text-gray-900 mb-6">Test the Agent Live Right Now</h2>
+                            <p className="text-xl text-gray-600 mb-10">
+                                Don't just take our word for it. Call our live demo line and ask about properties, HOA fees, or try to negotiate.
+                            </p>
+                            
+                            <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-2xl inline-block max-w-md w-full relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-indigo-600/20 group-hover:opacity-100 opacity-0 transition duration-500"></div>
+                                <div className="relative z-10">
+                                    <div className="text-gray-400 text-sm mb-2 uppercase tracking-widest">Call The Demo Line</div>
+                                    <a href="tel:9283259142" className="text-4xl font-mono font-bold hover:text-orange-400 transition block mb-4">
+                                        (928) 325-9142
+                                    </a>
+                                    <div className="text-xs text-gray-500">Powered by Vapi.ai • Model: GPT-4o Cluster</div>
+                                </div>
+                            </div>
+                            
+                            <p className="mt-8 text-sm text-gray-500">
+                                *Standard call rates apply. This demo uses the EbookGov configuration with "Safe Mode" enabled.
+                            </p>
+                        </div>
+                    </section>
+
+                    {/* Footer */}
+                    <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="grid md:grid-cols-4 gap-8">
+                                <div className="col-span-2">
+                                    <h3 className="text-white text-2xl font-bold mb-4">EbookGov</h3>
+                                    <p className="max-w-xs text-gray-400">
+                                        Engage Leads. Book Showings. Govern Compliance.
+                                        The premier AI solution for Arizona real estate professionals.
+                                    </p>
+                                </div>
+                                <div>
+                                    <h4 className="text-white font-semibold mb-4">Product</h4>
+                                    <ul className="space-y-2">
+                                        <li><a href="#" className="hover:text-orange-500 transition">Features</a></li>
+                                        <li><a href="#" className="hover:text-orange-500 transition">Integrations</a></li>
+                                        <li><a href="#" className="hover:text-orange-500 transition">Pricing</a></li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="text-white font-semibold mb-4">Compliance</h4>
+                                    <ul className="space-y-2">
+                                        <li><a href="#" className="hover:text-orange-500 transition">ADRE Policy 2005.04</a></li>
+                                        <li><a href="#" className="hover:text-orange-500 transition">Privacy Policy</a></li>
+                                        <li><a href="#" className="hover:text-orange-500 transition">Terms of Service</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div className="mt-12 pt-8 border-t border-slate-800 text-sm text-center md:text-left">
+                                <p>&copy; 2024 EbookGov. All rights reserved. Phoenix, AZ.</p>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<EbookGovLanding />);
+    </script>
+</body>
+</html>

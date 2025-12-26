@@ -347,6 +347,126 @@ Deno.serve(async (req) => {
         }
       }
 
+      case "lead.update_qualification": {
+        const agent_id = payload.agent_id;
+        const lead_id = payload.lead_id;
+        const qualData = payload as Record<string, unknown>;
+
+        if (!agent_id || !lead_id) return json({ error: "agent_id, lead_id required" }, 400);
+
+        // Extract qualification fields
+        const updateFields: Record<string, unknown> = {};
+        const allowedFields = [
+          "preapproval_status", "budget_min", "budget_max", "down_payment_pct",
+          "credit_score_range", "timeline", "motivation", "urgency_level",
+          "preferred_cities", "bedrooms_min", "bathrooms_min", "must_have_features",
+          "deal_breakers", "has_solar_concern", "has_water_concern", "has_hoa_concern",
+          "needs_multi_gen", "disqualification_reason", "appointment_url", "name"
+        ];
+
+        for (const field of allowedFields) {
+          if (field in qualData && qualData[field] !== undefined) {
+            updateFields[field] = qualData[field];
+          }
+        }
+
+        if (Object.keys(updateFields).length === 0) {
+          return json({ error: "No valid qualification fields provided" }, 400);
+        }
+
+        updateFields.updated_at = new Date().toISOString();
+
+        // Update lead
+        const { data: updated, error: updateErr } = await supabase
+          .from("leads")
+          .update(updateFields)
+          .eq("id", lead_id)
+          .eq("agent_id", agent_id)
+          .select("*")
+          .single();
+
+        if (updateErr) {
+          console.error("lead.update_qualification error:", updateErr);
+          return json({ error: updateErr.message }, 400);
+        }
+
+        // Auto-calculate score (trigger will handle this, but we can call function explicitly)
+        const { data: scoreData, error: scoreErr } = await supabase.rpc(
+          "calculate_qualification_score",
+          { lead_id }
+        );
+
+        if (scoreErr) {
+          console.warn("Score calculation error:", scoreErr);
+        }
+
+        return json({
+          ok: true,
+          lead_id,
+          qualification_score: scoreData ?? updated.qualification_score,
+          qualification_status: updated.qualification_status,
+          updated_fields: Object.keys(updateFields),
+        });
+      }
+
+      case "lead.calculate_score": {
+        const agent_id = payload.agent_id;
+        const lead_id = payload.lead_id;
+
+        if (!agent_id || !lead_id) return json({ error: "agent_id, lead_id required" }, 400);
+
+        // Call scoring function
+        const { data: score, error: scoreErr } = await supabase.rpc(
+          "calculate_qualification_score",
+          { lead_id }
+        );
+
+        if (scoreErr) {
+          console.error("lead.calculate_score error:", scoreErr);
+          return json({ error: scoreErr.message }, 400);
+        }
+
+        // Fetch updated lead
+        const { data: lead, error: leadErr } = await supabase
+          .from("leads")
+          .select("qualification_score, qualification_status, qualified_at")
+          .eq("id", lead_id)
+          .eq("agent_id", agent_id)
+          .single();
+
+        if (leadErr) {
+          return json({ error: leadErr.message }, 400);
+        }
+
+        return json({
+          ok: true,
+          lead_id,
+          qualification_score: lead.qualification_score,
+          qualification_status: lead.qualification_status,
+          qualified_at: lead.qualified_at,
+        });
+      }
+
+      case "lead.get_by_phone": {
+        const agent_id = payload.agent_id;
+        const phone_number = payload.lead?.phone_number;
+
+        if (!agent_id || !phone_number) return json({ error: "agent_id, phone_number required" }, 400);
+
+        const { data: lead, error: leadErr } = await supabase
+          .from("leads")
+          .select("*")
+          .eq("agent_id", agent_id)
+          .eq("phone_number", phone_number)
+          .single();
+
+        if (leadErr || !lead) {
+          return json({ ok: true, lead: null, is_new: true });
+        }
+
+        return json({ ok: true, lead, is_new: false });
+      }
+
       default:
         return json({ error: "Unknown action" }, 400);
     }

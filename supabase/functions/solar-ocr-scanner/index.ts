@@ -34,70 +34,82 @@ function json(res: unknown, status = 200) {
 }
 
 /**
- * Extract solar contract fields using Google Cloud Document AI
+ * Extract solar contract fields using Google Gemini 1.5 Flash Vision API
  */
 async function extractSolarContractData(documentBase64: string, mimeType: string, vendor?: string): Promise<ExtractedSolarData> {
-  const gcpProjectId = Deno.env.get("GCP_PROJECT_ID");
-  const gcpProcessorId = Deno.env.get("GCP_SOLAR_PROCESSOR_ID");
-  const gcpLocation = Deno.env.get("GCP_LOCATION") ?? "us";
-
-  if (!gcpProjectId || !gcpProcessorId) {
-    throw new Error("GCP_PROJECT_ID and GCP_SOLAR_PROCESSOR_ID must be configured");
+  const apiKey = Deno.env.get("GOOGLE_GENERATIVE_AI_KEY");
+  if (!apiKey) {
+    throw new Error("GOOGLE_GENERATIVE_AI_KEY not configured");
   }
 
-  // Use Application Default Credentials or service account JSON
-  const serviceAccountKey = Deno.env.get("GOOGLE_APPLICATION_CREDENTIALS_JSON");
-  if (!serviceAccountKey) {
-    throw new Error("GOOGLE_APPLICATION_CREDENTIALS_JSON not configured");
-  }
+  // Convert MIME type to Gemini format
+  const geminiMimeType = mimeType === "application/pdf" ? "application/pdf" : 
+                         mimeType.startsWith("image/") ? mimeType : "image/jpeg";
 
-  const serviceAccount = JSON.parse(serviceAccountKey);
+  const extractionPrompt = `Analyze this solar contract or agreement and extract the following financial terms. Return ONLY a JSON object with these exact fields (use null for missing values):
 
-  // Obtain GCP OAuth token
-  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: await createJWT(serviceAccount),
-    }).toString(),
-  });
+{
+  "monthly_payment": <number or null>,
+  "escalator_clause": <true/false>,
+  "escalator_pct": <number or null>,
+  "buyout_amount": <number or null>,
+  "transfer_fee": <number or null>,
+  "lease_term_years": <number or null>,
+  "contract_type": "<lease|ppa|loan|unknown>",
+  "vendor": "<vendor name or null>",
+  "confidence_score": <0.0-1.0>
+}
 
-  if (!tokenResponse.ok) {
-    throw new Error(`Failed to obtain GCP token: ${tokenResponse.statusText}`);
-  }
+Focus on:
+- Monthly payment amount (numeric only, no currency symbol)
+- Annual escalator/increase percentage
+- Buyout/buydown amount to purchase system
+- Transfer or assumption fees
+- Lease term in years
+- Contract type (lease, PPA/power purchase agreement, loan, or unknown)
+- Vendor name (Sunrun, Tesla, Vivint, Sunnova, etc.)
 
-  const tokenData = await tokenResponse.json();
-  const accessToken = tokenData.access_token;
+If any field is unclear or missing, use null. Set confidence_score to your confidence level (0.0-1.0).`;
 
-  // Call Document AI API
-  const processUrl = `https://documentai.googleapis.com/v1/projects/${gcpProjectId}/locations/${gcpLocation}/processors/${gcpProcessorId}:process`;
+  const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
-  const docaiResponse = await fetch(processUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      document: {
-        mimeType,
-        content: documentBase64,
+  const requestBody = {
+    contents: [
+      {
+        parts: [
+          { text: extractionPrompt },
+          {
+            inlineData: {
+              mimeType: geminiMimeType,
+              data: documentBase64,
+            },
+          },
+        ],
       },
-    }),
+    ],
+    generationConfig: {
+      temperature: 0.3, // Low temperature for factual extraction
+      topK: 1,
+    },
+  };
+
+  const geminiResponse = await fetch(`${geminiUrl}?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody),
   });
 
-  if (!docaiResponse.ok) {
-    const errText = await docaiResponse.text();
-    console.error("Document AI error:", errText);
-    throw new Error(`Document AI API failed: ${docaiResponse.statusText}`);
+  if (!geminiResponse.ok) {
+    const errText = await geminiResponse.text();
+    console.error("Gemini API error:", errText);
+    throw new Error(`Gemini Vision API failed: ${geminiResponse.statusText}`);
   }
 
-  const docaiResult = await docaiResponse.json();
-  const document = docaiResult.document;
+  const geminiResult = await geminiResponse.json();
+  const responseText = geminiResult.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
-  // Parse extracted entities and text
-  const extracted = parseDocumentAIResponse(document, vendor);
+  // Parse Gemini's JSON response
+  const extracted = parseGeminiResponse(responseText, vendor);
   return extracted;
 }
 
@@ -408,6 +420,17 @@ Deno.serve(async (req) => {
           console.error("Insert risk_assessment failed:", insertErr);
           return json({ error: insertErr.message }, 400);
         }
+
+        // Track usage for billing
+        await supabase.from("agent_usage_metrics").insert({
+          agent_id,
+          metric_type: "solar_ocr_scan",
+          metric_value: 1,
+          cost_usd: 0.075, // Gemini cost per scan
+          lead_id: lead_id ?? null,
+          property_id: property_id ?? null,
+          metadata: { vendor, extraction_method: "google-gemini-vision" },
+        });
 
         return json({
           ok: true,
